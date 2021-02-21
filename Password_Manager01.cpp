@@ -23,9 +23,9 @@ class user
         for (int j = 0; j < repeat; j++)
         {
             if (i % 2 == 0)
-                encrypwd[k]=oddPos;
-            else
                 encrypwd[k]=evenPos;
+            else
+                encrypwd[k]=oddPos;
                 k++;
         }
     }
