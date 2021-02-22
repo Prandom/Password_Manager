@@ -2,107 +2,124 @@
 #include<fstream>
 #include<string>
 #include<cstring>
+#include<cstdlib>
 using namespace std;
 class user
 {
-    public:
-    string username,password,site;char encrypwd[10000];
-    void encrypt()
-    {
-        int n= password.length();
-        char pwd[n];
-        strcpy(pwd, password.c_str());
-        char evenPos = '@', oddPos = '!';
-    int repeat, ascii;
-    int k=0;
-    for (int i = 0; i <n; i++)
-    {
-        ascii = pwd[i];
-        repeat = ascii >= 97 ? ascii - 96 : ascii - 47;
 
-        for (int j = 0; j < repeat; j++)
-        {
-            if (i % 2 == 0)
-                encrypwd[k]=evenPos;
-            else
-                encrypwd[k]=oddPos;
-                k++;
-        }
+    char password[50],encrypwd[10000];
+public:
+	char site[50],username[50];
+    string encryptDecrypt(string toEncrypt)
+    {
+      char key = 'K'; 
+    string output = toEncrypt;
+    
+    for (int i = 0; i < toEncrypt.size(); i++)
+        output[i] = toEncrypt[i] ^ key;
+    
+    return output;
+        
     }
 
 
-    }
+    
 
+    void getdata()
+    {
+        cout<<"Enter username\n";cin>>username;
+        cout<<"Enter site\n";gets(site);gets(site);
+        cout<<"Enter password\n";gets(password);
+    }
     void putdata()
     {
         cout<<"Site "<<site<<endl;
         cout<<"Username "<<username<<endl;
-        cout<<"Encrypted Password "<<password<<endl;
+        cout<<"Password "<<password<<endl;
 
     }
-string getsite()
-{
-    return site;
-}
-string getusername()
-{
-    return username;
-}
-string getpassword()
-{
-    return password;
-}
-}u1,u2;
+
+
+}u1;
 
 int main()
 {
-    int c;
+    int i=1;string name,pwd;
+    ifstream f;ofstream o;
+    f.open("count.txt");
+    f>>i;
+    f.close();
+	if(i==1)
+	{cout<<"Enter name:";getline(cin,name);
+	cout<<"Enter password:";getline(cin,pwd);
+	ofstream ofs,o;
+	ofs.open("Super User.txt");o.open("SU01.bin");
+	ofs<<name<<endl;
+	pwd=u1.encryptDecrypt(pwd);
+	o<<pwd<<endl;
+	ofs.close();o.close();
+	cout<<"Logged in\n";
+	}
+	else if(i>1)
+	{
+		string p,n;
+		cout<<"Enter name:";getline(cin,n);
+	    cout<<"Enter password:";getline(cin,p);
+	    ifstream ifs,i;
+	    ifs.open("Super User.txt");i.open("SU01.bin");
+	    getline(ifs,name);
+	    getline(i,pwd);
+	    pwd=u1.encryptDecrypt(pwd);
+	    i.close();
+	    ifs.close();
+	    if(n==name && p==pwd)
+	    cout<<"Logged in\n";
+	    else
+	    {
+		cout<<"Wrong Input\n";
+		return 0;
+		}
+	}
+	i++;
+	o.open("count.txt");
+	o<<i;
+	o.close();
+	int c;
     while(1)
     {
-    cout<<"Enter 1. for Viewing the database\n 2. for Adding new site\n 3. for Removing data of a site"<<endl;
+    cout<<"Enter 1. for Viewing the database\n 2. for Adding new site\n 3. for Removing data of a site\n 4. for Searching data of a site\n 5. for generating a strong password"<<endl;
     cout<<"Enter your choice"<<endl;
     cin>>c;
     switch(c)
     {
     case 1:
-        {ifstream ifs("User.txt",ios::in);
+        {ifstream ifs("User.bin",ios::in|ios::binary);
         while(!ifs.eof())
         {
-           ifs>>u1.site;
-           ifs>>u1.username;
-           ifs>>u1.password;
+           ifs.read((char*)&u1,sizeof(u1));
            u1.putdata();
         }
         ifs.close();
         break;}
     case 2:
         {
-        string s1;
-        ofstream ofs("User.txt",ios::app);
-        cout<<"Enter site "<<endl; cin>>s1;
-        u1.site=s1;
-        cout<<"Enter username "<<endl; cin>>u1.username;
-        cout<<"Enter password "<<endl;cin>>u1.password;
-        ofs<<u1.getsite()<<endl<<u1.getusername()<<endl;
-        u1.encrypt();
-        for(int i=0;i<strlen(u1.encrypwd);i++)
-            ofs<<u1.encrypwd[i];
-        ofs<<endl;
+
+        ofstream ofs("User.bin",ios::app|ios::binary);
+        u1.getdata();
+        ofs.write((char*)&u1,sizeof(u1));
         ofs.close();
         break;}
     case 3:
         {
-           string s;char found='f',confirm;
-           ifstream ifs("User.txt",ios::in);
-           ofstream ofs("temp.txt",ios::out);
+           char s[50];char found='f',confirm;
+           ifstream ifs("User.bin",ios::in|ios::binary);
+           ofstream ofs("temp.bin",ios::out|ios::binary);
            cout<<"Enter the site, the details of which you want to delete "<<endl;
-           cin>>s;
+           gets(s);gets(s);
            while(!ifs.eof())
            {
-               ifs>>u1.site;
-               ifs>>u1.username;
-               ifs>>u1.password;
-               if(s==u1.getsite())
+               ifs.read((char*)&u1,sizeof(u1));
+               if(strcmp(s,u1.site)==0)
                {
                    u1.putdata();
                    found='t';
@@ -110,22 +127,85 @@ int main()
                    cin>>confirm;
                    if(confirm=='n')
                    {
-                       ofs<<u1.getsite()<<endl<<u1.getusername()<<endl<<u1.getpassword()<<endl;
+                       ofs.write((char*)&u1,sizeof(u1));
                    }
                }
                    else
                    {
-                       ofs<<u1.getsite()<<endl<<u1.getusername()<<endl<<u1.getpassword()<<endl;
+                       ofs.write((char*)&u1,sizeof(u1));
                    }
                }
                if(found=='f')
                         cout<<"Record not found!\n";
                ifs.close();
                ofs.close();
-               remove("User.txt");
-               rename("temp.txt","User.txt");
+               remove("User.bin");
+               rename("temp.bin","User.bin");
                break;
         }
+    case 4:
+        	{
+        		ifstream ifs("User.bin",ios::in|ios::binary);
+        		char s[50];char found='f',ch;
+        		cout<<"Do you want to search by site or by username?(s/u)\n";
+        		cin>>ch;
+        		if(ch=='s')
+        		{
+        			 cout<<"Enter the site of the record you want to search "<<endl;
+                     gets(s);gets(s);
+                    while(!ifs.eof())
+                      {
+                          ifs.read((char*)&u1,sizeof(u1));
+                          if(strcmp(s,u1.site)==0)
+                            {
+                                u1.putdata();
+                                 found='t';
+        			
+				            }
+				        }
+				        if(found=='f')
+                        cout<<"Record not found!\n";
+                     ifs.close();
+                 }
+                 else if(ch=='u')
+        		{
+        			 cout<<"Enter the username of the record you want to search "<<endl;
+                     gets(s);gets(s);
+                    while(!ifs.eof())
+                      {
+                          ifs.read((char*)&u1,sizeof(u1));
+                          if(strcmp(s,u1.username)==0)
+                            {
+                                u1.putdata();
+                                 found='t';
+        			
+				            }
+				        }
+				        if(found=='f')
+                        cout<<"Record not found!\n";
+                     ifs.close();
+                 }
+                 
+        		break;
+			}
+	case 5:
+	{
+		int l=8+rand()%12;string res=""; int r;
+  
+     
+    for (int i = 0; i < l; i++)  
+        {
+        	r=rand()%2;
+			if(r==0)
+			res=res+(char)(48+rand()%10);
+			else if(r==1)
+			res+=(char)(65+rand()%26);
+			else
+			res+=(char)(97+rand()%26);
+		}
+	cout<<"Suggested strong password:"<<res<<endl;
+      
+	break;	}			
     default:
         cout<<"Wrong Choice"<<endl;
     }
